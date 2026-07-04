@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 
 // Preload glasses image
 const glassesImg = new Image()
-glassesImg.src = '../sunglasses.png'
+glassesImg.src = 'public/sunglasses2.png'
 const hatImg = new Image()
-hatImg.src = '/hat.png'
+hatImg.src = 'public/Hat.png'
+const mustacheImg = new Image()
+mustacheImg.src = 'public/mustache.png'
+
 function loadScript(src) {
   return new Promise((resolve) => {
     if (document.querySelector(`script[src="${src}"]`)) {
@@ -179,72 +182,48 @@ function drawSunglassesCanvas(ctx, lm, W, H) {
 
 // ─── Hat ───────────────────────────────────────────────────────────
 function drawHat(ctx, lm, W, H) {
+  if (!hatImg.complete || hatImg.width === 0) return // nothing to draw yet
+
   const leftTemple  = lm(234)
   const rightTemple = lm(454)
   const forehead    = lm(10)
-  const hatW  = Math.abs(rightTemple.x - leftTemple.x) * 1.35
-  const brimH = hatW * 0.12
-  const crownH = hatW * 0.65
+
+  const imgW = Math.abs(rightTemple.x - leftTemple.x) * 1.8
+  const imgH = imgW * (hatImg.naturalHeight / hatImg.naturalWidth)
   const cx = (leftTemple.x + rightTemple.x) / 2
-  const baseY = forehead.y - H * 0.01
+  const cy = forehead.y - imgH * 0.55 // tweak this multiplier if hat sits too high/low
+
   const angle = Math.atan2(rightTemple.y - leftTemple.y, rightTemple.x - leftTemple.x)
+
   ctx.save()
-  ctx.translate(cx, baseY)
+  ctx.translate(cx, cy)
   ctx.rotate(angle)
-  ctx.fillStyle = '#1a0f00'
-  ctx.fillRect(-hatW * 0.52, -brimH, hatW * 1.04, brimH)
-  ctx.fillStyle = '#0f0800'
-  ctx.fillRect(-hatW * 0.38, -brimH - crownH, hatW * 0.76, crownH)
-  ctx.fillStyle = '#c9a84c'
-  ctx.fillRect(-hatW * 0.38, -brimH - crownH * 0.22, hatW * 0.76, crownH * 0.1)
-  ctx.fillStyle = '#0f0800'
-  ctx.beginPath()
-  ctx.ellipse(0, -brimH - crownH, hatW * 0.38, hatW * 0.06, 0, Math.PI, 0)
-  ctx.fill()
+  ctx.drawImage(hatImg, -imgW / 2, -imgH / 2, imgW, imgH)
   ctx.restore()
 }
 
 
 // ─── Mustache ──────────────────────────────────────────────────────
 function drawMustache(ctx, lm, W, H) {
-  const noseBottom = lm(2)
+  if (!mustacheImg.complete || mustacheImg.width === 0) return
+
   const mouthLeft  = lm(61)
   const mouthRight = lm(291)
+  const noseBottom = lm(2)
   const upperLip   = lm(0)
-  const mx = (mouthLeft.x + mouthRight.x) / 2
-  const my = (noseBottom.y + upperLip.y) / 2
-  const mw = Math.abs(mouthRight.x - mouthLeft.x) * 1.3
-  const mh = mw * 0.28
-  const angle = Math.atan2(mouthRight.y - mouthLeft.y, mouthRight.x - mouthLeft.x)
-  ctx.save()
-  ctx.translate(mx, my)
-  ctx.rotate(angle)
-  ctx.fillStyle = '#1a0f00'
-  ctx.beginPath()
-  ctx.moveTo(0, 0)
-  ctx.bezierCurveTo(-mw * 0.1, -mh, -mw * 0.45, -mh, -mw * 0.5, 0)
-  ctx.bezierCurveTo(-mw * 0.45, mh * 0.5, -mw * 0.1, mh * 0.3, 0, mh * 0.1)
-  ctx.fill()
-  ctx.beginPath()
-  ctx.moveTo(0, 0)
-  ctx.bezierCurveTo(mw * 0.1, -mh, mw * 0.45, -mh, mw * 0.5, 0)
-  ctx.bezierCurveTo(mw * 0.45, mh * 0.5, mw * 0.1, mh * 0.3, 0, mh * 0.1)
-  ctx.fill()
-  ctx.restore()
-}
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.lineTo(x + w - r, y)
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-  ctx.lineTo(x + w, y + h - r)
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-  ctx.lineTo(x + r, y + h)
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-  ctx.lineTo(x, y + r)
-  ctx.quadraticCurveTo(x, y, x + r, y)
-  ctx.closePath()
+  const imgW = Math.abs(mouthRight.x - mouthLeft.x) * 1.7
+  const imgH = imgW * (mustacheImg.naturalHeight / mustacheImg.naturalWidth)
+  const cx = (mouthLeft.x + mouthRight.x) / 2
+  const cy = (noseBottom.y + upperLip.y) / 2
+
+  const angle = Math.atan2(mouthRight.y - mouthLeft.y, mouthRight.x - mouthLeft.x)
+
+  ctx.save()
+  ctx.translate(cx, cy)
+  ctx.rotate(angle)
+  ctx.drawImage(mustacheImg, -imgW / 2, -imgH / 2, imgW, imgH)
+  ctx.restore()
 }
 
 function drawLips(ctx, lm, W, H) {
@@ -269,7 +248,7 @@ function drawLips(ctx, lm, W, H) {
     ctx.lineTo(p.x, p.y)
   })
   ctx.closePath()
-  ctx.fillStyle = '#601108'
+  ctx.fillStyle = '#090100'
   ctx.globalAlpha = 0.55
   ctx.fill('evenodd')
   ctx.globalAlpha = 1

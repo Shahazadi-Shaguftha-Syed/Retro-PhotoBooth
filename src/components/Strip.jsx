@@ -1,9 +1,9 @@
 import React from 'react'
 
-export default function Strip({ frames }) {
+export default function Strip({ frames, stripCount }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {Array.from({ length: 4 }).map((_, i) => (
+      {Array.from({ length: stripCount }).map((_, i) => (
         frames[i] ? (
           <div key={i} style={{ position: 'relative', aspectRatio: '4/3', borderRadius: 1, overflow: 'hidden', background: '#0a0908', border: '1px solid var(--border)' }}>
             <canvas

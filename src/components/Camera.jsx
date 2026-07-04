@@ -4,6 +4,7 @@ import { useFaceMesh } from '../hooks/useFaceMesh'
 import FilterBar, { FILTERS } from './FilterBar'
 import OverlayPicker from './OverlayPicker'
 import Strip from './Strip'
+import StripPreview from './StripPreview'
 
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
@@ -18,6 +19,8 @@ export default function Camera() {
   const [timerOn, setTimerOn] = useState(false)
   const [busy, setBusy] = useState(false)
   const [flash, setFlash] = useState(false)
+  const [stripCount, setStripCount] = useState(4)
+  const [showPreview, setShowPreview] = useState(false)
 
   const { faceDetected } = useFaceMesh(videoRef, canvasRef, overlays, activeFilter)
 
@@ -53,16 +56,18 @@ export default function Camera() {
       setLastCanvas(c)
       setFrames(prev => {
         const next = [...prev, c]
-        return next.length > 4 ? next.slice(next.length - 4) : next
+        const trimmed = next.length > stripCount ? next.slice(next.length - stripCount) : next
+        if (trimmed.length === stripCount) setShowPreview(true)
+        return trimmed
       })
     }
     setBusy(false)
-  }, [busy, timerOn, capture])
+  }, [busy, timerOn, capture, stripCount])
 
   const autoStrip = useCallback(async () => {
     if (busy) return
     setBusy(true)
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < stripCount; i++) {
       if (i > 0) await sleep(700)
       if (timerOn) {
         for (let c = 3; c >= 1; c--) {
@@ -78,19 +83,20 @@ export default function Camera() {
         setLastCanvas(c)
         setFrames(prev => {
           const next = [...prev, c]
-          return next.length > 4 ? next.slice(next.length - 4) : next
+          return next.length > stripCount ? next.slice(next.length - stripCount) : next
         })
       }
     }
+    setShowPreview(true)
     setBusy(false)
-  }, [busy, timerOn, capture])
+  }, [busy, timerOn, capture, stripCount])
 
   const downloadStrip = () => {
     if (!frames.length) return
     const fw = 400
     const fh = Math.round(fw * (frames[0].height / frames[0].width))
     const pad = 16, gap = 6
-    const totalH = pad * 2 + fh * 4 + gap * 3 + 36
+    const totalH = pad * 2 + fh * frames.length + gap * (frames.length - 1) + 36
     const out = document.createElement('canvas')
     out.width = fw + pad * 2
     out.height = totalH
@@ -131,6 +137,12 @@ export default function Camera() {
     a.click()
   }
 
+  const handleRetake = () => {
+    setFrames([])
+    setLastCanvas(null)
+    setShowPreview(false)
+  }
+
   const panelStyle = {
     border: '1px solid var(--border)',
     borderRadius: 2,
@@ -165,12 +177,25 @@ export default function Camera() {
     transition: 'all 0.15s',
   })
 
+  const downloadBtnStyle = (primary, disabled) => ({
+    padding: '10px 24px',
+    fontSize: 10,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    border: `1px solid ${primary ? 'var(--gold)' : 'var(--border2)'}`,
+    borderRadius: 2,
+    background: 'transparent',
+    color: primary ? 'var(--gold)' : 'var(--cream)',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.3 : 1,
+    transition: 'all 0.2s',
+  })
+
   return (
     <div style={{ width: '100%', maxWidth: 900, margin: '0 auto' }}>
-      {/* Main grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: '1.5rem', alignItems: 'start' }}>
 
-        {/* Left: camera + filters */}
+        {/* Left: camera + filters + download */}
         <div>
           <div style={{ position: 'relative', background: '#000', border: '1px solid var(--border2)', borderRadius: 2, overflow: 'hidden', aspectRatio: '4/3' }}>
             {/* hidden video for MediaPipe input */}
@@ -232,6 +257,24 @@ export default function Camera() {
           </div>
 
           <FilterBar active={activeFilter} onChange={setActiveFilter} />
+
+          {/* Download row — lives right under the camera, always visible, no scrolling needed */}
+          <div style={{ marginTop: 12, display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <button
+              onClick={downloadStrip}
+              disabled={frames.length === 0}
+              style={downloadBtnStyle(true, frames.length === 0)}
+            >
+              ↓ download strip
+            </button>
+            <button
+              onClick={downloadSingle}
+              disabled={!lastCanvas}
+              style={downloadBtnStyle(false, !lastCanvas)}
+            >
+              ↓ last photo
+            </button>
+          </div>
         </div>
 
         {/* Right: controls + overlays + strip */}
@@ -240,6 +283,36 @@ export default function Camera() {
           {/* Capture */}
           <div style={panelStyle}>
             <div style={labelStyle}>capture</div>
+
+            {/* Stepper for photo count */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, border: '1px solid var(--border)', borderRadius: 2, padding: '6px 10px' }}>
+              <button
+                onClick={() => setStripCount(c => Math.max(1, c - 1))}
+                disabled={busy || stripCount === 1}
+                style={{
+                  background: 'transparent', border: 'none', color: 'var(--gold)',
+                  fontSize: 16, cursor: (busy || stripCount === 1) ? 'not-allowed' : 'pointer',
+                  opacity: (busy || stripCount === 1) ? 0.3 : 1, padding: '0 8px',
+                }}
+              >
+                −
+              </button>
+              <span style={{ fontSize: 11, letterSpacing: 1, color: 'var(--cream)' }}>
+                {stripCount} photo{stripCount > 1 ? 's' : ''}
+              </span>
+              <button
+                onClick={() => setStripCount(c => Math.min(4, c + 1))}
+                disabled={busy || stripCount === 4}
+                style={{
+                  background: 'transparent', border: 'none', color: 'var(--gold)',
+                  fontSize: 16, cursor: (busy || stripCount === 4) ? 'not-allowed' : 'pointer',
+                  opacity: (busy || stripCount === 4) ? 0.3 : 1, padding: '0 8px',
+                }}
+              >
+                +
+              </button>
+            </div>
+
             <button
               onClick={shoot}
               disabled={busy || !ready}
@@ -257,7 +330,7 @@ export default function Camera() {
               ⏱ 3s timer — {timerOn ? 'on' : 'off'}
             </button>
             <button onClick={autoStrip} disabled={busy || !ready} style={ctrlBtn(false)}>
-              📸 auto strip × 4
+              {stripCount === 1 ? '📸 capture photo' : `📸 auto strip × ${stripCount}`}
             </button>
             <button onClick={() => { setFrames([]); setLastCanvas(null) }} disabled={frames.length === 0} style={{ ...ctrlBtn(false), marginBottom: 0 }}>
               ✕ clear strip
@@ -273,29 +346,19 @@ export default function Camera() {
           {/* Strip */}
           <div style={panelStyle}>
             <div style={labelStyle}>strip</div>
-            <Strip frames={frames} />
+            <Strip frames={frames} stripCount={stripCount} />
           </div>
         </div>
       </div>
 
-      {/* Download row */}
-      <div style={{ marginTop: '1.5rem', display: 'flex', gap: 10, justifyContent: 'center' }}>
-        {[
-          { label: '↓ download strip', onClick: downloadStrip, disabled: frames.length === 0, primary: true },
-          { label: '↓ last photo', onClick: downloadSingle, disabled: !lastCanvas, primary: false },
-        ].map(b => (
-          <button key={b.label} onClick={b.onClick} disabled={b.disabled} style={{
-            padding: '10px 24px', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase',
-            border: `1px solid ${b.primary ? 'var(--gold)' : 'var(--border2)'}`,
-            borderRadius: 2, background: 'transparent',
-            color: b.primary ? 'var(--gold)' : 'var(--cream)',
-            cursor: b.disabled ? 'not-allowed' : 'pointer',
-            opacity: b.disabled ? 0.3 : 1, transition: 'all 0.2s',
-          }}>
-            {b.label}
-          </button>
-        ))}
-      </div>
+      {showPreview && (
+        <StripPreview
+          frames={frames}
+          stripCount={stripCount}
+          onRetake={handleRetake}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   )
 }
