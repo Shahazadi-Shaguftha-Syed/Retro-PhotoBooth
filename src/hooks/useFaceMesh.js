@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 
 // Preload glasses image
 const glassesImg = new Image()
-glassesImg.src = 'public/sunglasses2.png'
+glassesImg.src = import.meta.env.BASE_URL + 'sunglasses.png'
 const hatImg = new Image()
-hatImg.src = 'public/Hat.png'
+hatImg.src = import.meta.env.BASE_URL + 'Hat.png'
 const mustacheImg = new Image()
-mustacheImg.src = 'public/mustache.png'
+mustacheImg.src = import.meta.env.BASE_URL + 'mustache.png'
 
 function loadScript(src) {
   return new Promise((resolve) => {
@@ -100,6 +100,8 @@ export function useFaceMesh(videoRef, canvasRef, overlays, activeFilter) {
           ctx.drawImage(video, 0, 0, W, H)
           ctx.filter = 'none'
 
+          if (filterRef.current?.fx === 'duotone') applyDuotone(ctx, W, H)
+
           // Draw overlays on top
           const lms = landmarksRef.current
           if (lms) drawOverlays(ctx, lms, W, H, overlaysRef.current)
@@ -121,6 +123,20 @@ export function useFaceMesh(videoRef, canvasRef, overlays, activeFilter) {
   }, [videoRef, canvasRef])
 
   return { faceDetected }
+}
+
+function applyDuotone(ctx, W, H) {
+  const shadow = [20, 14, 10]
+  const highlight = [235, 210, 160]
+  const imgData = ctx.getImageData(0, 0, W, H)
+  const d = imgData.data
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255
+    d[i]     = shadow[0] + (highlight[0] - shadow[0]) * lum
+    d[i + 1] = shadow[1] + (highlight[1] - shadow[1]) * lum
+    d[i + 2] = shadow[2] + (highlight[2] - shadow[2]) * lum
+  }
+  ctx.putImageData(imgData, 0, 0)
 }
 
 // ─── Overlay dispatcher ────────────────────────────────────────────

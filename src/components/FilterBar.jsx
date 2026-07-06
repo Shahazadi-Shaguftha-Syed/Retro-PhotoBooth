@@ -4,7 +4,7 @@ const FILTERS = [
   { name: 'normal',  css: 'none' },
   { name: 'mono',    css: 'grayscale(1) contrast(1.1)' },
   { name: 'warm',    css: 'sepia(0.55) saturate(1.3) brightness(1.05)' },
-  { name: 'cool',    css: 'hue-rotate(180deg) saturate(0.75) brightness(1.1)' },
+  { name: 'duotone', css: 'none', fx: 'duotone' },
   { name: 'vivid',   css: 'saturate(2) contrast(1.1)' },
   { name: 'fade',    css: 'contrast(0.78) brightness(1.18) saturate(0.65)' },
   { name: 'noir',    css: 'grayscale(1) contrast(1.5) brightness(0.8)' },

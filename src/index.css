@@ -26,3 +26,33 @@ button { font-family: 'DM Mono', monospace; cursor: pointer; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ─── Photo "developing" effect — blur/darken fades to sharp over ~1.4s ─── */
+@keyframes developPhoto {
+  0%   { filter: blur(10px) brightness(0.25) contrast(0.5) sepia(0.35); opacity: 0.4; }
+  40%  { filter: blur(5px)  brightness(0.55) contrast(0.7) sepia(0.18); opacity: 0.75; }
+  100% { filter: blur(0)    brightness(1)    contrast(1)   sepia(0);    opacity: 1; }
+}
+.photo-developing {
+  animation: developPhoto 1.4s ease-out forwards;
+}
+
+/* ─── Strip "ejecting from camera" — slides down with slight wobble ─── */
+@keyframes stripEject {
+  0%   { transform: translateY(-130%) rotate(-4deg); opacity: 0; }
+  55%  { transform: translateY(8%) rotate(1.5deg);   opacity: 1; }
+  75%  { transform: translateY(-3%) rotate(-0.5deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+.strip-eject {
+  animation: stripEject 0.85s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ─── Strip sliding out of printer slot — like paper feeding out of a real printer ─── */
+@keyframes printSlide {
+  0%   { clip-path: inset(0 0 100% 0); }
+  100% { clip-path: inset(0 0 0% 0); }
+}
+.strip-print {
+  animation: printSlide 3s linear forwards;
+}

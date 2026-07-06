@@ -3,7 +3,7 @@
 
 export const FRAME_CONFIG = {
   1: {
-    src: '/frame_1.png',
+    src: import.meta.env.BASE_URL + 'frame_1.png',
     canvasW: 305,
     canvasH: 559,
     slots: [
@@ -11,7 +11,7 @@ export const FRAME_CONFIG = {
     ],
   },
   2: {
-    src: '/frame_2.png',
+    src: import.meta.env.BASE_URL + 'frame_2.png',
     canvasW: 334,
     canvasH: 650,
     slots: [
@@ -20,7 +20,7 @@ export const FRAME_CONFIG = {
     ],
   },
   3: {
-    src: '/frame_3.png',
+    src: import.meta.env.BASE_URL + 'frame_3.png',
     canvasW: 365,
     canvasH: 734,
     slots: [
@@ -30,7 +30,7 @@ export const FRAME_CONFIG = {
     ],
   },
   4: {
-    src: '/frame_4.png',
+    src: import.meta.env.BASE_URL + 'frame_4.png',
     canvasW: 385,
     canvasH: 920,
     slots: [

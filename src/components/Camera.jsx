@@ -24,7 +24,17 @@ export default function Camera() {
 
   const { faceDetected } = useFaceMesh(videoRef, canvasRef, overlays, activeFilter)
 
+  const shutterAudio = new Audio(import.meta.env.BASE_URL + 'shutter.mp3')
+  
+  const playShutterSound = () => {
+    shutterAudio.currentTime = 0
+    shutterAudio.play().catch(e => console.warn('Shutter sound failed:', e))
+  }
+
+
+
   const doFlash = () => {
+    playShutterSound() 
     setFlash(true)
     setTimeout(() => setFlash(false), 120)
   }
@@ -57,7 +67,9 @@ export default function Camera() {
       setFrames(prev => {
         const next = [...prev, c]
         const trimmed = next.length > stripCount ? next.slice(next.length - stripCount) : next
-        if (trimmed.length === stripCount) setShowPreview(true)
+        if (trimmed.length === stripCount) {
+          setTimeout(() => setShowPreview(true), 1200)  
+        }
         return trimmed
       })
     }
@@ -87,7 +99,7 @@ export default function Camera() {
         })
       }
     }
-    setShowPreview(true)
+    setTimeout(() => setShowPreview(true), 1200)  
     setBusy(false)
   }, [busy, timerOn, capture, stripCount])
 
