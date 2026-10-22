@@ -38,7 +38,7 @@ A retro-styled, browser-based photobooth web app with real-time AI face filters 
 ## Run Locally
 
 ```bash
-git clone https://github.com/your-username/retro-photobooth
+git clone (https://github.com/Shahazadi-Shaguftha-Syed/Retro-PhotoBooth)
 cd retro-photobooth
 npm install
 npm run dev
